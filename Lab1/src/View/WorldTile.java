@@ -5,9 +5,13 @@ import java.awt.*;
 
 public class WorldTile extends JComponent
 {
+    private int _width;
+    private int _height;
+    
     WorldTile()
     {
-    
+        _width = 50;
+        _height = 50;
     }
 
     @Override
@@ -15,6 +19,6 @@ public class WorldTile extends JComponent
     {
         super.paintComponent(g);
         g.setColor(Color.GREEN);
-        g.fillRect(8,8,100,100);
+        g.fillRect(0,0, _width, _height);
     }
 }
