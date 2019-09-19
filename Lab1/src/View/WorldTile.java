@@ -1,24 +1,45 @@
 package View;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicBorders;
 import java.awt.*;
 
 public class WorldTile extends JComponent
 {
-    private int _width;
-    private int _height;
+    static int SideLength = 50;
     
-    WorldTile()
+    private Color _color;
+    
+    WorldTile(Color color)
     {
-        _width = 50;
-        _height = 50;
+        _color = color;
+        setBorder(new BasicBorders.FieldBorder(Color.black, Color.black, Color.black, Color.black));
     }
-
+    
+    @Override
+    public Dimension getPreferredSize()
+    {
+        return new Dimension(SideLength, SideLength);
+    }
+    
+    @Override
+    public Dimension getMaximumSize()
+    {
+        return new Dimension(SideLength, SideLength);
+    }
+    
+    @Override
+    public Dimension getMinimumSize()
+    {
+        return new Dimension(SideLength, SideLength);
+    }
+    
     @Override
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        g.setColor(Color.GREEN);
-        g.fillRect(0,0, _width, _height);
+        
+        g.setColor(_color);
+        g.fillRect(0,0, g.getClipBounds().width, g.getClipBounds().height);
     }
 }
