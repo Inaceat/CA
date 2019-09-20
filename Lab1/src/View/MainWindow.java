@@ -1,14 +1,15 @@
 package View;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicBorders;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class MainWindow extends JFrame
 {
     private JPanel _root;
     
-    private WorldField _wordField;
+    private WorldViewer _wordViewer;
 
     private MainWindow(String caption)
     {
@@ -18,9 +19,18 @@ public class MainWindow extends JFrame
         _root = new JPanel(new FlowLayout(FlowLayout.RIGHT), true);
         
         
-        _wordField = new WorldField(10);
-        _root.add(_wordField);
+        _wordViewer = new WorldViewer(10);
+        _root.add(_wordViewer);
+        
+        //TODO temp, for debug purposes
+        var button = new JButton("Turn right");
+        button.addActionListener(e -> _wordViewer.TurnRobotRight());
+        _root.add(button);
     
+        var button2 = new JButton("Paint smth");
+        button2.addActionListener(e -> _wordViewer.SetTileColor((int)(Math.random()*10), (int)(Math.random()*10), new Color((int)(Math.random() * 0x1000000))));
+        _root.add(button2);
+        
         setContentPane(_root);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
