@@ -26,10 +26,6 @@ public class MainWindow extends JFrame
         var button = new JButton("Turn right");
         button.addActionListener(e -> _wordViewer.TurnRobotRight());
         _root.add(button);
-    
-        var button2 = new JButton("Paint smth");
-        button2.addActionListener(e -> _wordViewer.SetTileColor((int)(Math.random()*10), (int)(Math.random()*10), new Color((int)(Math.random() * 0x1000000))));
-        _root.add(button2);
         
         setContentPane(_root);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -42,5 +38,20 @@ public class MainWindow extends JFrame
         MainWindow mainWindow = new MainWindow("PainBot");
         
         mainWindow.setSize(800,600);
+    
+        //TODO temp, for debug purposes
+        while(true)
+        {
+            try
+            {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            
+            mainWindow._wordViewer.SetTileColor((int)(Math.random()*10), (int)(Math.random()*10), new Color((int)(Math.random() * 0x1000000)));
+        }
     }
 }
