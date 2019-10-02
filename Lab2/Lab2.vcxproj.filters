@@ -5,10 +5,21 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{0065b38d-8950-4d98-a9b1-265cac5701f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="src\Task1.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Task1.inc">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
