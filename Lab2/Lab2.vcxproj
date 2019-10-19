@@ -156,7 +156,7 @@
     </MASM>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <MASM Include="src\Source.asm" />
+    <MASM Include="src\Main.asm" />
     <MASM Include="src\Task1.asm" />
   </ItemGroup>
   <ItemGroup>

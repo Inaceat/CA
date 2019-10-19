@@ -10,10 +10,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="src\Source.asm">
+    <MASM Include="src\Task1.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="src\Task1.asm">
+    <MASM Include="src\Main.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
