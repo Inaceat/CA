@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1035
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AsmCommon", "AsmCommon", "{049D4587-E454-4632-90CF-2878698BEF6F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lab3", "Lab3\Lab3.vcxproj", "{85F6B949-E69D-44B4-8381-32DFE369DCB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -32,6 +34,14 @@ Global
 		{6A10BD9B-EDB3-4A17-8751-12809ED8B5F9}.Release|x64.Build.0 = Release|x64
 		{6A10BD9B-EDB3-4A17-8751-12809ED8B5F9}.Release|x86.ActiveCfg = Release|Win32
 		{6A10BD9B-EDB3-4A17-8751-12809ED8B5F9}.Release|x86.Build.0 = Release|Win32
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Debug|x64.ActiveCfg = Debug|x64
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Debug|x64.Build.0 = Debug|x64
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Debug|x86.ActiveCfg = Debug|Win32
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Debug|x86.Build.0 = Debug|Win32
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Release|x64.ActiveCfg = Release|x64
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Release|x64.Build.0 = Release|x64
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Release|x86.ActiveCfg = Release|Win32
+		{85F6B949-E69D-44B4-8381-32DFE369DCB0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
