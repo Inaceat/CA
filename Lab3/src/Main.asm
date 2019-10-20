@@ -7,7 +7,7 @@ include WINDOWS.INC
 include kernel32.inc
 includelib kernel32.lib
 
-;include Task1.inc
+include Task1.inc
 
 
 .data
@@ -20,13 +20,15 @@ includelib kernel32.lib
 	wrongTaskNumberMessageLength dd 20
 
 	DescriptionExit db "0. Exit", 0Dh, 0Ah, 0;/r/n
-;	DescriptionTask1 db "1. Do nothing useful", 0Dh, 0Ah, 0;/r/n
+	DescriptionTask1 db "1. Get numbers sum, difference, product and quotient", 0Dh, 0Ah, 0;/r/n
+	DescriptionTask2 db "2. Calculate expression 3a-(a+b)/2", 0Dh, 0Ah, 0;/r/n
+	DescriptionTask3 db "3. Calculate expression with big numbers", 0Dh, 0Ah, 0;/r/n
 
-	tasksArray dd Exit;, Task1
-	tasksArraySize dd 1
+	tasksArray dd Exit, Task1;, Task2, Task3
+	tasksArraySize dd 2
 
-	tasksDescriptionsArray dd DescriptionExit;, DescriptionTask1
-	tasksDescriptionsArraySize dd 1
+	tasksDescriptionsArray dd DescriptionExit, DescriptionTask1, DescriptionTask2, DescriptionTask3
+	tasksDescriptionsArraySize dd 4
 
 .data?
 	inputHandle dd ?
