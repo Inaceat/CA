@@ -11,22 +11,22 @@ include Task1.inc
 
 
 .data
-	taskSelectionPrompt db "Enter task number, or 0 to exit:", 0Dh, 0Ah;/r/n
-	taskSelectionPromptLength dd 34
+	taskSelectionPrompt db "Enter task number:", 0Dh, 0Ah;/r/n
+	taskSelectionPromptLength dd 20
 
 	taskInputString db 3 dup(0)
 
 	wrongTaskNumberMessage db "Wrong task number!", 0Dh, 0Ah;/r/n
 	wrongTaskNumberMessageLength dd 20
 
-
+	DescriptionExit db "0. Exit", 0Dh, 0Ah, 0;/r/n
 	DescriptionTask1 db "1. Do nothing useful", 0Dh, 0Ah, 0;/r/n
 
 	tasksArray dd Exit, Task1
 	tasksArraySize dd 2
 
-	tasksDescriptionsArray dd DescriptionTask1
-	tasksDescriptionsArraySize dd 1
+	tasksDescriptionsArray dd DescriptionExit, DescriptionTask1
+	tasksDescriptionsArraySize dd 2
 
 .data?
 	inputHandle dd ?
@@ -60,9 +60,32 @@ TaskSelection:
 	push outputHandle
 	call WriteConsole
 
-;Print tasks
-	
 
+;Print tasks
+	mov EBX, 0;Using EBX as counter due to lstrlen. THIS #%$!*?@ SPOILS ECX!!!
+PrintTasks:
+	;If no decriptions left
+	cmp EBX, tasksDescriptionsArraySize
+	;Continue executing
+	je ReadTaskNumber
+	
+	;Else get description length
+	push [tasksDescriptionsArray + 4* EBX]
+	call lstrlen;Length to EAX
+
+	;Print description
+	push NULL                
+	push offset charsWritten
+	push EAX
+	push [tasksDescriptionsArray + 4* EBX] 
+	push outputHandle
+	call WriteConsole
+
+	;Repeat
+	inc EBX
+	jmp PrintTasks
+
+ReadTaskNumber:
 ;Read number of selected task
 	;Read user input, 1+2(/r/n) symbol max
 	push NULL
