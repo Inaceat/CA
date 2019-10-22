@@ -16,9 +16,12 @@
     <MASM Include="src\Task1.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="src\Task2.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Task1.inc">
+    <None Include="src\Tasks.inc">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

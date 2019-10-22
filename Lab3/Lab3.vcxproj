@@ -158,9 +158,10 @@
   <ItemGroup>
     <MASM Include="src\Main.asm" />
     <MASM Include="src\Task1.asm" />
+    <MASM Include="src\Task2.asm" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Task1.inc" />
+    <None Include="src\Tasks.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
