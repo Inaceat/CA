@@ -25,7 +25,7 @@ include Tasks.inc
 	DescriptionTask3 db "3. Calculate expression with big numbers", 0Dh, 0Ah, 0;/r/n
 
 	tasksArray dd Exit, Task1, Task2;, Task3
-	tasksArraySize dd 2
+	tasksArraySize dd 3
 
 	tasksDescriptionsArray dd DescriptionExit, DescriptionTask1, DescriptionTask2, DescriptionTask3
 	tasksDescriptionsArraySize dd 4
