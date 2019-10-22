@@ -37,6 +37,13 @@ public Task1
 	quotMessage db "Quot: "
 	quotMessageLength dd 6
 
+
+	multiplyOverflowMessage db "Numbers are too big for this!", 0Dh, 0Ah;\r\n
+	multiplyOverflowMessageLength dd 31
+
+	divisionErrorMessage db "Cannot divide byte zero", 0Dh, 0Ah;\r\n
+	divisionErrorMessageLength dd 25
+
 .data?
 	inputHandle dd ?
 	outputHandle dd ?
@@ -104,9 +111,23 @@ Task1:
 	mov secondNumber, EAX
 
 ;Now calculate
-	;Sum
+;Sum
 	mov EAX, firstNumber
 	add EAX, secondNumber
+
+	;Reset output string
+	;First element to clear, using EBX as current
+	mov EBX, offset numberOutputString
+	;After last element to clear
+	mov ECX, offset numberOutputString
+	add ECX, numberOutputStringLength
+	sub ECX, 2
+	;Start reseting
+ResetNextInSum:
+	mov byte ptr [EBX], 0
+	inc EBX
+	cmp EBX, ECX
+	je ResetNextInSum
 
 	;Convert to string
 	push offset numberOutputString
@@ -129,9 +150,158 @@ Task1:
 	push outputHandle
 	call WriteConsole
 
-	;Diff
-	;Prod
-	;Quot
+;Diff
+	mov EAX, firstNumber
+	sub EAX, secondNumber
 
+	;Reset output string
+	;First element to clear, using EBX as current
+	mov EBX, offset numberOutputString
+	;After last element to clear
+	mov ECX, offset numberOutputString
+	add ECX, numberOutputStringLength
+	sub ECX, 2
+	;Start reseting
+ResetNextInDiff:
+	mov byte ptr [EBX], 0
+	inc EBX
+	cmp EBX, ECX
+	je ResetNextInDiff
+	
+	;Convert to string
+	push offset numberOutputString
+	push EAX
+	call dwtoa
+
+	;Print to console message
+	push NULL                
+	push offset charsWritten
+	push diffMessageLength
+	push offset diffMessage
+	push outputHandle
+	call WriteConsole
+
+	;And number itself
+	push NULL                
+	push offset charsWritten
+	push numberOutputStringLength
+	push offset numberOutputString
+	push outputHandle
+	call WriteConsole
+
+;Prod
+	;Print to console message
+	push NULL                
+	push offset charsWritten
+	push prodMessageLength
+	push offset prodMessage
+	push outputHandle
+	call WriteConsole
+
+	;Multiply
+	mov EAX, firstNumber
+	mul secondNumber
+	
+	;If production overflows 32 bit
+	jo PrintMultiplyOverflowMessage
+	
+	;Else reset output string
+	;First element to clear, using EBX as current
+	mov EBX, offset numberOutputString
+	;After last element to clear
+	mov ECX, offset numberOutputString
+	add ECX, numberOutputStringLength
+	sub ECX, 2
+	;Start reseting
+ResetNextInProd:
+	mov byte ptr [EBX], 0
+	inc EBX
+	cmp EBX, ECX
+	je ResetNextInProd
+
+	;Convert to string
+	push offset numberOutputString
+	push EAX
+	call dwtoa
+
+	;And print number
+	push NULL                
+	push offset charsWritten
+	push numberOutputStringLength
+	push offset numberOutputString
+	push outputHandle
+	call WriteConsole
+	
+	;Continue
+	jmp Divide
+
+PrintMultiplyOverflowMessage:
+	push NULL                
+	push offset charsWritten
+	push multiplyOverflowMessageLength
+	push offset multiplyOverflowMessage
+	push outputHandle
+	call WriteConsole
+
+;Quot
+Divide:
+	;Print to console message
+	push NULL                
+	push offset charsWritten
+	push quotMessageLength
+	push offset quotMessage
+	push outputHandle
+	call WriteConsole
+
+	cmp secondNumber, 0
+	je PrintDivisionErrorMessage
+
+	;Divide
+	mov EDX, 0
+	mov EAX, firstNumber
+	div secondNumber
+	
+	;If division fails 
+	jo PrintDivisionErrorMessage
+	
+	;Else reset output string
+	;First element to clear, using EBX as current
+	mov EBX, offset numberOutputString
+	;After last element to clear
+	mov ECX, offset numberOutputString
+	add ECX, numberOutputStringLength
+	sub ECX, 2
+	;Start reseting
+ResetNextInQuot:
+	mov byte ptr [EBX], 0
+	inc EBX
+	cmp EBX, ECX
+	je ResetNextInQuot
+
+	;Convert to string
+	push offset numberOutputString
+	push EAX
+	call dwtoa
+
+	;And print number
+	push NULL                
+	push offset charsWritten
+	push numberOutputStringLength
+	push offset numberOutputString
+	push outputHandle
+	call WriteConsole
+	
+	;Continue
+	jmp Exit
+
+PrintDivisionErrorMessage:
+	push NULL                
+	push offset charsWritten
+	push divisionErrorMessageLength
+	push offset divisionErrorMessage
+	push outputHandle
+	call WriteConsole
+
+Exit:
 	ret
 end
