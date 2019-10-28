@@ -27,8 +27,8 @@ public Task3
 	resultMessage db "Result: "
 	resultMessageLength dd 8
 
-	overflowMessage db "Whoops, overflow occured. Try another numbers!", 0Dh, 0Ah;\r\n
-	overflowMessageLength dd 48
+	errorMessage db "Whoops, wrong numbers. Try another ones!", 0Dh, 0Ah;\r\n
+	errorMessageLength dd 42
 
 .data?
 	inputHandle dd ?
@@ -130,6 +130,10 @@ Task3:
 	;Now EDX:EAX contains (a^7 + b/32)
 	
 	;NOW I ASSUME THERE WON'T BE ANY OVERFLOWS
+	;But check for zero division
+	cmp cNumber, 0
+	je Error
+	
 	div cNumber;EAX now has quotient, EDX - remainder
 
 	add EAX, EDX
@@ -159,11 +163,11 @@ Task3:
 	ret
 
 
-OverflowError:
+Error:
 	push NULL                
 	push offset charsWritten
-	push overflowMessageLength
-	push offset overflowMessage
+	push errorMessageLength
+	push offset errorMessage
 	push outputHandle
 	call WriteConsole
 
