@@ -98,7 +98,21 @@ Task2:
 	mov bNumber, EAX
 
 ;Calculate a * b WITHOUT mul
-	
+	mov ECX, bNumber;Counter
+	mov EAX, 0;Result
+
+DoIteration:
+	;Check if should stop
+	cmp ECX, 0
+	je FinishMultiplication
+	;If not, add a to result, decrease counter
+	add EAX, aNumber
+	dec ECX
+	;And repeat
+	jmp DoIteration
+
+FinishMultiplication:
+	mov resultNumber, EAX
 
 ;Convert result to string
 	push offset numberOutputString
