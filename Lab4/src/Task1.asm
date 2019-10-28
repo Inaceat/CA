@@ -25,8 +25,6 @@ public Task1
 	numberOutputStringLength dd 12;Should be enough for everybody
 
 
-	
-
 .data?
 	inputHandle dd ?
 	outputHandle dd ?
@@ -38,6 +36,41 @@ public Task1
 	secondNumber dd ?
 
 .code
+;Get minimum of two 32bit unsigned values
+;	EAX - first number
+;	EBX - second number
+;Return:
+;	EAX - minimum of two numbers
+Min proc
+	;If EAX < EBX
+	cmp EAX, EBX
+	;Return, as EAX is min, and already in EAX
+	jb Exit
+	;Else, put EBX, as it's min, to EAX
+	mov EAX, EBX
+
+Exit:
+	ret
+Min endp
+
+;Get maximum of two 32bit unsigned values
+;	EAX - first number
+;	EBX - second number
+;Return:
+;	EAX - maximum of two numbers
+Max proc
+	;If EAX > EBX
+	cmp EAX, EBX
+	;Return, as EAX is max, and already in EAX
+	ja Exit
+	;Else, put EBX, as it's max, to EAX
+	mov EAX, EBX
+
+Exit:
+	ret
+Max endp
+
+
 Task1:
 ;Get system I/O Handles
 	;Get I
@@ -93,8 +126,29 @@ Task1:
 	call atodw
 	mov secondNumber, EAX
 
-;Now calculate
+;Now calculate : max(x^2, max(y,10)) / min(x,y)
+	;Find min(x,y) and save to ECX
+	mov EAX, firstNumber
+	mov EBX, secondNumber
+	call Min
+	mov ECX, EAX
 
+	;Find max(y,10) and save to EBX
+	mov EAX, secondNumber
+	mov EBX, 10
+	call Max
+	mov EBX, EAX
+	
+	;Put x^2 to EAX
+	mov EAX, firstNumber
+	mul firstNumber
+
+	;Now EAX == x^2, EBX == max(y,10), so
+	call Max
+
+	;Now EAX == numerator, ECX == denominator, so
+	mov EDX, 0
+	div ECX
 
 ;Convert result to string
 	push offset numberOutputString

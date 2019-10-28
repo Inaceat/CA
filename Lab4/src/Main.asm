@@ -20,7 +20,7 @@ include Tasks.inc
 	wrongTaskNumberMessageLength dd 20
 
 	DescriptionExit db "0. Exit", 0Dh, 0Ah, 0;/r/n
-	DescriptionTask1 db "1. Calculate some min/max expression", 0Dh, 0Ah, 0;/r/n
+	DescriptionTask1 db "1. Calculate max(x^2, max(y,10)) / min(x,y)", 0Dh, 0Ah, 0;/r/n
 	DescriptionTask2 db "2. Make weird multiplication", 0Dh, 0Ah, 0;/r/n
 
 	tasksArray dd Exit, Task1, Task2
