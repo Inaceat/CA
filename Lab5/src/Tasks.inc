@@ -1,2 +1,2 @@
-extern Task1 : proc
-extern Task2 : proc
+Task1 PROTO
+Task2 PROTO

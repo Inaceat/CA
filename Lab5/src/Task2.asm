@@ -84,27 +84,53 @@ ShowNumbersArray proc
 ;Convert array to string
 	;Counter
 	mov ECX, 0
+	mov outputStringLength, 0
 
-ArrayIteration:
-	;If no elements left, exit
-	cmp ECX, [EBP + 12]
-	je Exit
-
-	;Convert current element
-	push [EBP + 8 + ECX]
-	push offset formatString
-	push outputStringPtr
-	call wsprintf
-	add ESP, 12;Align stack after {wsprintf}, removing 3 parameters
-	add outputStringLength, EAX;Add number of written chars to {outputString}'s "real" length
-	add outputStringPtr, EAX;Align string buffer ptr to be first non-used byte
+	Cycle:
+		;If no elements left, exit
+		cmp ECX, [EBP + 12]
+		je ExitCycle
 	
+		;Get current number from array
+		mov EAX, [EBP + 8]
+		mov EAX, [EAX + 4*ECX]
+		
+		;Store ECX as it's modified by {wsprintf}
+		push ECX
+		;Convert number
+		push EAX
+		push offset formatString
+		push outputStringPtr
+		call wsprintf
+		
+		;Align stack after {wsprintf}, removing 3 parameters
+		add ESP, 12
+		;Restore ECX
+		pop ECX
+		
+		;Add number of written chars to {outputString}'s "real" length
+		add outputStringLength, EAX
+		;Align string buffer ptr to be first non-used byte
+		add outputStringPtr, EAX
+		
+		;Increase counter
+		inc ECX
+		;Repeat
+		jmp Cycle
 
-	add ECX, 4;Increase counter
-	;Repeat
-	jmp ArrayIteration
+ExitCycle:
+	;Add \r\n to string end
+	mov EAX, outputStringPtr
+	mov dword ptr [EAX], 0Dh;\r
+	mov dword ptr [EAX + 1], 0Ah;\n
+	
+	;Move {outputStringPtr} to the beginning of string
+	sub EAX, outputStringLength
+	mov outputStringPtr, EAX
 
-
+	;Add 2 to string length 'cause of \r\n
+	add outputStringLength, 2
+	
 ;Print string representation of array
 	push NULL                
 	push offset charsWritten
@@ -112,11 +138,8 @@ ArrayIteration:
 	push outputStringPtr
 	push outputHandle
 	call WriteConsole
-	
 
-	
 
-Exit:
 ;Free memory
 	push outputStringPtr
 	push 0
@@ -206,7 +229,7 @@ SomehowChangeArray endp
 	commonDifferenceNumber dd ?
 
 .code
-Task2:
+Task2 proc
 ;Get system I/O Handles
 	;Get I
 	push STD_INPUT_HANDLE
@@ -353,4 +376,6 @@ Task2:
 	call WriteConsole
 
 	ret
+Task2 endp
+
 end

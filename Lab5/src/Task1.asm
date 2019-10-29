@@ -78,7 +78,7 @@ public Task1
 	secondNumber dd ?
 
 .code
-Task1:
+Task1 proc
 ;Get system I/O Handles
 	;Get I
 	push STD_INPUT_HANDLE
@@ -154,4 +154,5 @@ Task1:
 	call WriteConsole
 
 	ret
+Task1 endp
 end
