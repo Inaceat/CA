@@ -47,11 +47,88 @@ FillArithmeticalProgressionArray endp
 ;Output:
 ;	none
 .data
+	formatString db "%d ", 0
+
+	heapHandle dd 0
+
+	outputStringPtr dd 0
+	outputStringBufferSize dd 0
+	outputStringLength dd 0
+
 .code
 ShowNumbersArray proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push ECX
+
+;Calculate size of string buffer needed for string representation of array
+	;Size == 12 * arraySize + 1 == arraySize * (11 + 1) + 1, 11 symbols should be enough for any 32bit number, 1 for space, and 1 for '\0'
+	mov EAX, 12
+	mul dword ptr [EBP + 12];Assuming result to be 32bit value
+	add EAX, 1
+	mov outputStringBufferSize, EAX
+
+;Allocate memory for string
+	call GetProcessHeap
+	mov heapHandle, EAX
+
+	push outputStringBufferSize
+	push 12; HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
+	push heapHandle
+	call HeapAlloc
+	mov outputStringPtr, EAX
+
+
+;Convert array to string
+	;Counter
+	mov ECX, 0
+
+ArrayIteration:
+	;If no elements left, exit
+	cmp ECX, [EBP + 12]
+	je Exit
+
+	;Convert current element
+	push [EBP + 8 + ECX]
+	push offset formatString
+	push outputStringPtr
+	call wsprintf
+	add ESP, 12;Align stack after {wsprintf}, removing 3 parameters
+	add outputStringLength, EAX;Add number of written chars to {outputString}'s "real" length
+	add outputStringPtr, EAX;Align string buffer ptr to be first non-used byte
 	
+
+	add ECX, 4;Increase counter
+	;Repeat
+	jmp ArrayIteration
+
+
+;Print string representation of array
+	push NULL                
+	push offset charsWritten
+	push outputStringLength
+	push outputStringPtr
+	push outputHandle
+	call WriteConsole
 	
+
+	
+
+Exit:
+;Free memory
+	push outputStringPtr
+	push 0
+	push heapHandle
+	call HeapFree
+
+;Epilogue & return
+	pop ECX
+	pop EAX
+	pop EBP
 	ret 8
+
 ShowNumbersArray endp
 
 
