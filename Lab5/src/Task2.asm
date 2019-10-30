@@ -220,6 +220,60 @@ GetArraySum endp
 .data
 .code
 SomehowChangeArray proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	
+;Prepare 
+	;ECX to store counter
+	mov ECX, 0
+
+;Calculate
+	Cycle:
+		;If no elements left, exit
+		cmp ECX, [EBP + 12]
+		je ExitCycle
+
+		;Get current number address
+		mov EAX, [EBP + 8]
+		add EAX, ECX
+		add EAX, ECX
+		add EAX, ECX
+		add EAX, ECX
+		;EAX = EAX + 4*ECX
+		;Now eax has number address
+
+		;Get current number
+		mov EBX, [EAX]
+
+		;Check if number is divisable by 4
+		;If number N % 4 == 0, last 2 bits of it are 00, so N & ..0011 == ..0000
+		;And ZF is set to 1
+		and EBX, 3
+		;So if ZF == 0, N % 4 != 0, and N should remain intact
+		jnz AfterDivision
+
+		;Divide number by 4 by shifting it
+		shr EBX, 2
+		;Move divided number to array
+		mov [EAX], EBX
+
+
+	AfterDivision:
+		;Increase counter
+		inc ECX
+		;Repeat
+		jmp Cycle
+
+ExitCycle:
+;Epilogue & return
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
 	ret 8
 SomehowChangeArray endp
 
