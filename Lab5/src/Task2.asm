@@ -155,7 +155,7 @@ ExitCycle:
 ShowNumbersArray endp
 
 
-;void GetArraySum(int* array, int arraySize)
+;int GetArraySum(int* array, int arraySize)
 ;		
 ;		Returns sum of all elements of array {array} of size {arraySize} of 32bit numbers.
 ;
@@ -168,7 +168,41 @@ ShowNumbersArray endp
 .data
 .code
 GetArraySum proc
-	mov EAX, 42
+	;Prologue
+	push EBP
+	mov EBP, ESP
+	push EBX
+	push ECX
+	
+;Prepare 
+	;EAX to store result
+	mov EAX, 0
+	;ECX to store counter
+	mov ECX, 0
+
+;Calculate sum
+	Cycle:
+		;If no elements left, exit
+		cmp ECX, [EBP + 12]
+		je ExitCycle
+
+		;Get current number from array
+		mov EBX, [EBP + 8]
+		mov EBX, [EBX + 4*ECX]
+
+		;Add to result
+		add EAX, EBX
+
+		;Increase counter
+		inc ECX
+		;Repeat
+		jmp Cycle
+
+ExitCycle:
+	;Epilogue & return
+	pop ECX
+	pop EBX
+	pop EBP
 	ret 8
 GetArraySum endp
 
