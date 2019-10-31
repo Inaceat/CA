@@ -15,7 +15,7 @@ includelib kernel32.lib
 public Task2
 
 
-;void FillArithmeticalProgressionArray(int first, int difference, OUT int* array, int arraySize)
+;void FillArithmeticalProgressionArray(int first, int difference, int* array, int arraySize)
 ;		
 ;		Fills array {array} of size {arraySize} with members of arithmetical progression with
 ;	first member {first} and common difference {difference}.
@@ -31,7 +31,53 @@ public Task2
 .data
 .code
 FillArithmeticalProgressionArray proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+
+;Prepare
+	;Move address of after-the-last element of array to ECX
+	;ECX = {array} + 4 * {arraySize}
+	mov ECX, [EBP + 16]
+	shl dword ptr [EBP + 20], 2
+	add ECX, [EBP + 20]
 	
+	;Move address of first array element to EAX
+	;Will be used as current in cycle
+	mov EAX, [EBP + 16]
+
+	;Move first member to EBX
+	;Will be used as current
+	mov EBX, [EBP + 8]
+
+	Cycle:
+		;If current element address is outside array
+		cmp EAX, ECX
+		je EndCycle
+
+		;Else put next progression element to array
+		mov [EAX], EBX
+
+		;Get next array element address
+		;EAX = EAX + dwordSize
+		add EAX, 4
+		;Get next progression member
+		;EBX = EBX + {difference}
+		add EBX, [EBP + 12]
+
+		;Repeat
+		jmp Cycle
+
+EndCycle:
+;Epilogue & return
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
+
 	ret 16
 FillArithmeticalProgressionArray endp
 
