@@ -298,7 +298,7 @@ SomehowChangeArray proc
 		;Check if number is divisable by 4
 		;If number N % 4 == 0, last 2 bits of it are 00, so N & ..0011 == ..0000
 		;And ZF is set to 1
-		and EBX, 3
+		test EBX, 3
 		;So if ZF == 0, N % 4 != 0, and N should remain intact
 		jnz AfterDivision
 
