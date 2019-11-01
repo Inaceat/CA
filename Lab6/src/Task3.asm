@@ -12,18 +12,150 @@ include kernel32.inc
 includelib kernel32.lib
 
 
+;void ConsoleReadDouble(char* inputPromptString, double* valuePointer)
+;
+;		Prints to console null-terminated string {inputPromptString},
+;	reads from console floating-point number and stores in memory,
+;	at {valuePointer} address.
+;
+;Input:
+;	inputPromptString	- [EBP + 8]
+;	valuePointer		- [EBP + 12]
+;
+;Output:
+;	none
+.data
+	numberInputString db 100+2 dup(0);For number & \r\n
+.code
+ConsoleReadDouble proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	push EDX
+
+;Print input prompt
+	;Get prompt length
+	push [EBP + 8]
+	call lstrlen
+	;Print prompt
+	push NULL                
+	push offset charsWritten
+	push EAX
+	push [EBP + 8]
+	push outputHandle
+	call WriteConsole
+	
+;Read number, assuming it is valid floating-point number
+	push NULL
+	push offset charsRead
+	push 100+2
+	push offset numberInputString
+	push inputHandle
+	call ReadConsole
+
+	;Put \0 after last digit
+	mov EAX, charsRead
+	mov [numberInputString + EAX - 2], 0
+
+	;Convert from string to number
+	push [EBP + 12]
+	push offset numberInputString
+	call StrToFloat
+
+;Epilogue & return
+	pop EDX
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
+
+	ret 8
+ConsoleReadDouble endp
+
+
+
+;void CalculateWeirdFunctionArgsAndValues
+;	(double aParam,
+;	 double bParam,
+;	 double xStart,
+;	 double xEnd,
+;	 double xDelta,
+;	 double** argsArray,
+;	 double** valsArray)
+;
+;		Creates and fills {argsArray} and {valsArray} with, respectively, arguments
+;	and values of function F(a, b, x), where x belongs to [{xStart}, {xEnd}] with step {xDelta}.
+;
+;					  |sqrt(-ax+a), if x < 1
+;		F(a, b, x) = {
+;					 |b*ln(x), if x >= 1
+;
+;		{argsArray} and {valsArray} are pointers to variables that store pointers to first array element,
+;	allocated dynamically at process heap, so caller is
+;	responsible for deletin them.
+;
+;Input:
+;	aParam		- [EBP + 8]
+;	bParam		- [EBP + 16]
+;	xStart		- [EBP + 24]
+;	xEnd		- [EBP + 32]
+;	xDelta		- [EBP + 40]
+;	argsArray	- [EBP + 48]
+;	valsArray	- [EBP + 52]
+;
+;Output:
+;	none
+.data
+	
+.code
+CalculateWeirdFunctionArgsAndValues proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	push EDX
+
+	;fld qword ptr [EBP + 8]
+
+
+;Epilogue & return
+	pop EDX
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
+
+	ret 28
+CalculateWeirdFunctionArgsAndValues endp
+
+
+
 
 .data
-	taskMessage db "Enter three numbers:", 0Dh, 0Ah;\r\n
-	taskMessageLength dd 22
+	taskMessage db "Enter some data, please:", 0Dh, 0Ah;\r\n
+	taskMessageLength dd 26
+	
+	aParamInputPrompt db "  a: ", 0
+	bParamInputPrompt db "  b: ", 0
 
-	numberString db 10+2 dup(0);For number & \r\n
+	xStartInputPrompt db "  x1: ", 0
+	xEndInputPrompt db "  x2: ", 0
+	xDeltaInputPrompt db "  dx: ", 0
 
-	resultMessage db "3a - (a+b)/2 = "
-	resultMessageLength dd 15
-
-	resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
-	resultNumberStringLength dd 12;Should be enough
+	functionTableCaption db "     x     |    f(x)   ", 0
+	
+	;numberString db 10+2 dup(0);For number & \r\n
+	;
+	;resultMessage db "3a - (a+b)/2 = "
+	;resultMessageLength dd 15
+	;
+	;resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
+	;resultNumberStringLength dd 12;Should be enough
 
 .data?
 	inputHandle dd ?
@@ -32,11 +164,19 @@ includelib kernel32.lib
 	charsWritten dd ?
 	charsRead dd ?
 
-	aNumber dd ?
-	bNumber dd ?
-	cNumber dd ?
 
-	resultNumber dd ?
+	aParamNumber dq ?
+	bParamNumber dq ?
+
+	xStartNumber dq ?
+	xEndNumber dq ?
+	xDeltaNumber dq ?
+
+
+	functionArgumentsArrayPointer dd ?
+	functionValuesArrayPointer dd ?
+
+	functionValuesCount dd ?
 
 .code
 Task3 proc
@@ -59,96 +199,33 @@ Task3 proc
 	push outputHandle
 	call WriteConsole
 	
-;Read three numbers, assuming they are valid 32-bit values
-;First
-	push NULL
-	push offset charsRead
-	push 10+2
-	push offset numberString
-	push inputHandle
-	call ReadConsole
+;Read user input
+	push offset aParamNumber
+	push offset aParamInputPrompt
+	call ConsoleReadDouble
 
-	;Put \0 after last digit
-	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
+	push offset bParamNumber
+	push offset bParamInputPrompt
+	call ConsoleReadDouble
 
-	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov aNumber, EAX
-;Second
-	push NULL
-	push offset charsRead
-	push 10+2
-	push offset numberString
-	push inputHandle
-	call ReadConsole
+	push offset xStartNumber
+	push offset xStartInputPrompt
+	call ConsoleReadDouble
 
-	;Put \0 after last digit
-	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
+	push offset xEndNumber
+	push offset xEndInputPrompt
+	call ConsoleReadDouble
 
-	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov bNumber, EAX
-;Third
-	push NULL
-	push offset charsRead
-	push 10+2
-	push offset numberString
-	push inputHandle
-	call ReadConsole
+	push offset xDeltaNumber
+	push offset xDeltaInputPrompt
+	call ConsoleReadDouble
 
-	;Put \0 after last digit
-	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
+;Calculate weird function arguments and values tables
+	
 
-	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov cNumber, EAX
-
-
-;Calculate weird function values table
-
-	mov EAX, 43
-
-;Print result
-	;Convert resulting number to string
-	push offset resultNumberString
-	push EAX
-	call dwtoa
-
-	;Print result description message
-	push NULL                
-	push offset charsWritten
-	push resultMessageLength
-	push offset resultMessage
-	push outputHandle
-	call WriteConsole
-
-	;Print result number
-	push NULL                
-	push offset charsWritten
-	push resultNumberStringLength
-	push offset resultNumberString
-	push outputHandle
-	call WriteConsole
-
-	;Clear result number string
-	mov ECX, 0
-	mov EBX, resultNumberStringLength
-	sub EBX, 2;\r\n should remain, so Length - 2
-	ClearingCycle:
-		cmp ECX, EBX
-		je ClearingCycleExit
-		mov [resultNumberString + ECX], 0
-		inc ECX
-		jmp ClearingCycle
-
-ClearingCycleExit:
+;Print resulting table
+	
+	
 	ret
 Task3 endp
-
 end
