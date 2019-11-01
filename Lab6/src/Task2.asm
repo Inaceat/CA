@@ -14,16 +14,20 @@ includelib kernel32.lib
 
 
 .data
-	taskMessage db "Enter three numbers:", 0Dh, 0Ah;\r\n
-	taskMessageLength dd 22
+	taskMessage db "Enter two numbers:", 0Dh, 0Ah;\r\n
+	taskMessageLength dd 20
 
-	numberString db 10+2 dup(0);For number & \r\n
+	numberInputString db 100+2 dup(0);For number & \r\n
 
 	resultMessage db "3a - (a+b)/2 = "
 	resultMessageLength dd 15
 
-	resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
-	resultNumberStringLength dd 12;Should be enough
+	resultNumberString db 100 dup(0), 0Dh, 0Ah;For number & \r\n
+	resultNumberStringMaxLength dd 102;Should be enough
+	resultNumberStringUsedLength dd 0
+
+	two dq 2.0
+	three dq 3.0
 
 .data?
 	inputHandle dd ?
@@ -32,11 +36,10 @@ includelib kernel32.lib
 	charsWritten dd ?
 	charsRead dd ?
 
-	aNumber dd ?
-	bNumber dd ?
-	cNumber dd ?
+	aNumber dq ?
+	bNumber dq ?
 
-	resultNumber dd ?
+	resultNumber dq ?
 
 .code
 Task2 proc
@@ -59,66 +62,79 @@ Task2 proc
 	push outputHandle
 	call WriteConsole
 	
-;Read three numbers, assuming they are valid 32-bit values
+;Read two numbers, assuming they are valid floating-point numbers
 ;First
 	push NULL
 	push offset charsRead
-	push 10+2
-	push offset numberString
+	push 100+2
+	push offset numberInputString
 	push inputHandle
 	call ReadConsole
 
 	;Put \0 after last digit
 	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
+	mov [numberInputString + EAX - 2], 0
 
 	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov aNumber, EAX
+	push offset aNumber
+	push offset numberInputString
+	call StrToFloat
+
 ;Second
 	push NULL
 	push offset charsRead
-	push 10+2
-	push offset numberString
+	push 100+2
+	push offset numberInputString
 	push inputHandle
 	call ReadConsole
 
 	;Put \0 after last digit
 	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
+	mov [numberInputString + EAX - 2], 0
 
 	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov bNumber, EAX
-;Third
-	push NULL
-	push offset charsRead
-	push 10+2
-	push offset numberString
-	push inputHandle
-	call ReadConsole
-
-	;Put \0 after last digit
-	mov EAX, charsRead
-	mov [numberString + EAX - 2], 0
-
-	;Convert from string to number
-	push offset numberString
-	call atodw
-	mov cNumber, EAX
+	push offset bNumber
+	push offset numberInputString
+	call StrToFloat
 
 
 ;Calculate 3a - (a+b)/2
+	finit
 
-	mov EAX, 42
+	fld aNumber
+	fadd bNumber
+	;ST now has a+b
+
+	fld two
+	fdivr ST(0), ST(1)
+	;ST now has (a+b)/2
+
+	fld three
+	fmul aNumber
+	;ST now has 3a, ST(1) has (a+b)/2
+
+	fsub ST(0), ST(1)
+
+	fstp resultNumber
 
 ;Print result
 	;Convert resulting number to string
 	push offset resultNumberString
-	push EAX
-	call dwtoa
+	push dword ptr resultNumber + 4
+	push dword ptr resultNumber
+	call FloatToStr
+
+	;Get number representation length
+	push offset resultNumberString
+	call lstrlen
+	;Now EAX has number of used bytes in resultString
+	;Add \r\n to string and to used length
+	mov [resultNumberString + EAX], 0Dh
+	mov [resultNumberString + EAX + 1], 0Ah
+	;Add \0
+	mov [resultNumberString + EAX + 2], 0
+	add EAX, 3
+	mov resultNumberStringUsedLength, EAX
 
 	;Print result description message
 	push NULL                
@@ -131,14 +147,14 @@ Task2 proc
 	;Print result number
 	push NULL                
 	push offset charsWritten
-	push resultNumberStringLength
+	push resultNumberStringUsedLength
 	push offset resultNumberString
 	push outputHandle
 	call WriteConsole
 
 	;Clear result number string
 	mov ECX, 0
-	mov EBX, resultNumberStringLength
+	mov EBX, resultNumberStringMaxLength
 	sub EBX, 2;\r\n should remain, so Length - 2
 	ClearingCycle:
 		cmp ECX, EBX
