@@ -84,18 +84,21 @@ ConsoleReadDouble endp
 ;	 double xEnd,
 ;	 double xDelta,
 ;	 double** argsArray,
-;	 double** valsArray)
+;	 double** valsArray,
+;	 int* arraySize)
 ;
-;		Creates and fills {argsArray} and {valsArray} with, respectively, arguments
-;	and values of function F(a, b, x), where x belongs to [{xStart}, {xEnd}] with step {xDelta}.
+;		Creates and fills {argsArray} and {valsArray} of size {arraySize} with, respectively, arguments
+;	and values of function F(a, b, x), where x belongs to [{xStart}, {xEnd}] in increment {xDelta},
+;	i.e. {xStart}, {xStart} + {xDelta}, {xStart} + 2*{xDelta}, etc.
 ;
 ;					  |sqrt(-ax+a), if x < 1
 ;		F(a, b, x) = {
 ;					 |b*ln(x), if x >= 1
 ;
 ;		{argsArray} and {valsArray} are pointers to variables that store pointers to first array element,
-;	allocated dynamically at process heap, so caller is
-;	responsible for deletin them.
+;	allocated dynamically on process heap, so caller is	responsible for deleting them.
+;
+;		[{xStart}, {xEnd}] is assumed to be correct interval, i.e. {xStart} <= {xEnd}.
 ;
 ;Input:
 ;	aParam		- [EBP + 8]
@@ -105,11 +108,16 @@ ConsoleReadDouble endp
 ;	xDelta		- [EBP + 40]
 ;	argsArray	- [EBP + 48]
 ;	valsArray	- [EBP + 52]
+;	arraySize	- [EBP + 56]
 ;
 ;Output:
 ;	none
 .data
-	
+	fpuControlWord dw ?
+
+	arraySize dd ?
+
+	heapHandle dd ?
 .code
 CalculateWeirdFunctionArgsAndValues proc
 ;Prologue
@@ -120,8 +128,65 @@ CalculateWeirdFunctionArgsAndValues proc
 	push ECX
 	push EDX
 
-	;fld qword ptr [EBP + 8]
+;Calculate array size needed to store args and vals
+;Size == floor((xEnd - xStart) / xDelta) + 1
+	finit
 
+	fld qword ptr [EBP + 32];xEnd
+	fsub qword ptr [EBP + 24];xStart
+	;ST == xEnd - xStart
+
+	fdiv qword ptr [EBP + 40];xDelta
+	;ST == (xEnd - xStart) / xDelta
+
+	;Change rounding mode to floor
+	fstcw fpuControlWord	;Get Control Word Register (CWR) to AX
+	mov AX, fpuControlWord	;
+	or AX, 0C00h			;Change RC field to 11, it causes numbers to be rounded towards zero (0C00h == 0000_1100_0000_0000b)
+	push EAX				;Load back to CWR
+	fldcw [ESP]				;
+	pop EAX					;Clear stack
+	
+	;Round
+	frndint
+	;ST == floor((xEnd - xStart) / xDelta)
+
+	;Restore CWR
+	fldcw fpuControlWord
+
+	fld1
+	fadd
+	;ST == floor((xEnd - xStart) / xDelta) + 1
+	
+	;Get needed array size to memory
+	fist arraySize
+
+
+;Allocate memory and store pointers in memory {argsArray} and {valsArray} point to
+	;Get Heap handle to EAX
+	call GetProcessHeap
+	mov heapHandle, EAX
+
+	;Allocate for args array
+	push arraySize
+	push 12				;HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
+	push heapHandle
+	call HeapAlloc 
+	;Store allocated memory pointer to {argsArray}
+	mov EBX, [EBP + 48]
+	mov [EBX], EAX
+
+	;Allocate for vals array
+	push arraySize
+	push 12				;HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
+	push heapHandle
+	call HeapAlloc 
+	;Store allocated memory pointer to {valsArray}
+	mov EBX, [EBP + 48]
+	mov [EBX], EAX
+
+
+;Calculate function args & vals
 
 ;Epilogue & return
 	pop EDX
@@ -157,6 +222,13 @@ CalculateWeirdFunctionArgsAndValues endp
 	;resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
 	;resultNumberStringLength dd 12;Should be enough
 
+	aParamNumber dq 1.0
+	bParamNumber dq 2.0
+	
+	xStartNumber dq 12.0
+	xEndNumber dq 24.0
+	xDeltaNumber dq 3.4
+
 .data?
 	inputHandle dd ?
 	outputHandle dd ?
@@ -165,12 +237,12 @@ CalculateWeirdFunctionArgsAndValues endp
 	charsRead dd ?
 
 
-	aParamNumber dq ?
-	bParamNumber dq ?
-
-	xStartNumber dq ?
-	xEndNumber dq ?
-	xDeltaNumber dq ?
+	;aParamNumber dq ?
+	;bParamNumber dq ?
+	;
+	;xStartNumber dq ?
+	;xEndNumber dq ?
+	;xDeltaNumber dq ?
 
 
 	functionArgumentsArrayPointer dd ?
@@ -200,28 +272,41 @@ Task3 proc
 	call WriteConsole
 	
 ;Read user input
-	push offset aParamNumber
-	push offset aParamInputPrompt
-	call ConsoleReadDouble
-
-	push offset bParamNumber
-	push offset bParamInputPrompt
-	call ConsoleReadDouble
-
-	push offset xStartNumber
-	push offset xStartInputPrompt
-	call ConsoleReadDouble
-
-	push offset xEndNumber
-	push offset xEndInputPrompt
-	call ConsoleReadDouble
-
-	push offset xDeltaNumber
-	push offset xDeltaInputPrompt
-	call ConsoleReadDouble
+	;push offset aParamNumber
+	;push offset aParamInputPrompt
+	;call ConsoleReadDouble
+	;
+	;push offset bParamNumber
+	;push offset bParamInputPrompt
+	;call ConsoleReadDouble
+	;
+	;push offset xStartNumber
+	;push offset xStartInputPrompt
+	;call ConsoleReadDouble
+	;
+	;push offset xEndNumber
+	;push offset xEndInputPrompt
+	;call ConsoleReadDouble
+	;
+	;push offset xDeltaNumber
+	;push offset xDeltaInputPrompt
+	;call ConsoleReadDouble
 
 ;Calculate weird function arguments and values tables
-	
+	push offset functionValuesCount
+	push offset functionValuesArrayPointer
+	push offset functionArgumentsArrayPointer
+	push dword ptr xDeltaNumber + 4
+	push dword ptr xDeltaNumber
+	push dword ptr xEndNumber + 4
+	push dword ptr xEndNumber
+	push dword ptr xStartNumber + 4
+	push dword ptr xStartNumber
+	push dword ptr bParamNumber + 4
+	push dword ptr bParamNumber
+	push dword ptr aParamNumber + 4
+	push dword ptr aParamNumber
+	call CalculateWeirdFunctionArgsAndValues
 
 ;Print resulting table
 	
