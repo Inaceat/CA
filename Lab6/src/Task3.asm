@@ -96,7 +96,7 @@ ConsoleReadDouble endp
 ;					 |b*ln(x), if x >= 1
 ;
 ;		{argsArray} and {valsArray} are pointers to variables that store pointers to first array element,
-;	allocated dynamically on process heap, so caller is	responsible for deleting them.
+;	allocated dynamically on process heap, so caller is responsible for deleting them.
 ;
 ;		[{xStart}, {xEnd}] is assumed to be correct interval, i.e. {xStart} <= {xEnd}.
 ;
@@ -116,6 +116,7 @@ ConsoleReadDouble endp
 	fpuControlWord dw ?
 
 	arraySize dd ?
+	arraySizeBytes dd ?
 
 	heapHandle dd ?
 .code
@@ -158,8 +159,16 @@ CalculateWeirdFunctionArgsAndValues proc
 	fadd
 	;ST == floor((xEnd - xStart) / xDelta) + 1
 	
-	;Get needed array size to memory
-	fist arraySize
+	;Get calculated array size
+	fist arraySize					;Load size to 'local' variable
+	mov EBX, arraySize				;Copy to EBX
+	mov EAX, dword ptr [EBP + 56]	;Address of output variable
+	mov dword ptr [EAX], EBX		;Copy to output, {arraySize} variable
+	
+	;Now arraySize variable (and EBX) contains NUMBER of elements in array
+	;But we need BYTES. Array contains 'double' values with sizeof == 8, so:
+	shl EBX, 3
+	mov arraySizeBytes, EBX
 
 
 ;Allocate memory and store pointers in memory {argsArray} and {valsArray} point to
@@ -167,27 +176,79 @@ CalculateWeirdFunctionArgsAndValues proc
 	call GetProcessHeap
 	mov heapHandle, EAX
 
+	;Allocate for vals array
+	push arraySizeBytes
+	push 12				;HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
+	push heapHandle
+	call HeapAlloc 
+	;Store allocated memory pointer to {valsArray}
+	mov EBX, [EBP + 52]
+	mov [EBX], EAX
+
 	;Allocate for args array
-	push arraySize
+	push arraySizeBytes
 	push 12				;HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
 	push heapHandle
 	call HeapAlloc 
 	;Store allocated memory pointer to {argsArray}
 	mov EBX, [EBP + 48]
 	mov [EBX], EAX
-
-	;Allocate for vals array
-	push arraySize
-	push 12				;HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS
-	push heapHandle
-	call HeapAlloc 
-	;Store allocated memory pointer to {valsArray}
-	mov EBX, [EBP + 48]
-	mov [EBX], EAX
-
-
+	
 ;Calculate function args & vals
 
+	;Prepare cycle
+	mov ECX, EAX			;EAX == pointer to current (now first) {argsArray} empty cell
+	add ECX, arraySizeBytes	;ECX == pointer to {argsArray} after-the-last cell
+	
+	mov EBX, [EBP + 52]		;EBX == pointer to current (now first) {valsArray} empty cell
+	mov EBX, [EBX]
+
+	;Loading {xStart} value into first {argsArray} cell
+	push [EBP + 24]
+	pop [EAX]
+	push [EBP + 28]
+	pop [EAX + 4]	;Smth like "mov qword ptr [EAX], qword ptr [EBP + 24]"
+
+
+	finit
+	fld qword ptr [EAX]		;Now ST == argument, X
+
+	Cycle:;At the beginning ST == X
+		fld1					;Now ST == 1, ST(1) == X
+		
+		fcomi ST, ST(1)			;Compare 1 and X
+		ja IfXLowerThanOne		;If 1 > X, i.e. X < 1, f(X) = a(1-X)
+	
+		;Now X >= 1, so f(X) == b * ln(X) == (b / log2(e)) * log2(X) == b * 1/logE(2) * log2(X)
+		fstp ST						;Now ST == X
+		fldln2						;Now ST == logE(2), ST(1) == X
+		fmul qword ptr [EBP + 16]	;Now ST == b * logE(2), ST(1) == X
+		fxch						;Now ST == X, ST(1) == b * logE(2)
+		fyl2x						;Now ST == b * ln(X)
+		jmp AfterFuncCalculation
+	
+	IfXLowerThanOne:
+		;Now X < 1, so f(X) == a * (1-X)
+		fsubrp						;Now ST == (1-X)
+		fmul qword ptr [EBP + 8]	;Now ST == a * (1-X)
+		
+	AfterFuncCalculation:
+		fstp qword ptr [EBX]	;Store f(X) to {valsArray}
+
+		fld qword ptr [EAX]			;Load X
+		fadd qword ptr [EBP + 40]	;Add {xDelta}
+		
+		add EAX, 8			;Increase {argsArray}
+		add EBX, 8			;and {valsArray} pointers.
+		
+		cmp EAX, ECX		;If {argsArray} current ptr is after last array cell
+		jae CycleExit		;Exit cycle
+
+		fst qword ptr [EAX]	;Else load X + {xDelta} to new {argsArray} empty cell
+							;So ST == X, as we need at the cycle beginning
+		jmp Cycle			;Repeat
+
+CycleExit:
 ;Epilogue & return
 	pop EDX
 	pop ECX
@@ -222,12 +283,12 @@ CalculateWeirdFunctionArgsAndValues endp
 	;resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
 	;resultNumberStringLength dd 12;Should be enough
 
-	aParamNumber dq 1.0
+	aParamNumber dq 3.7
 	bParamNumber dq 2.0
 	
-	xStartNumber dq 12.0
-	xEndNumber dq 24.0
-	xDeltaNumber dq 3.4
+	xStartNumber dq -6.0
+	xEndNumber dq 6.0
+	xDeltaNumber dq 3.5
 
 .data?
 	inputHandle dd ?
