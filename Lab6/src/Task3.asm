@@ -231,6 +231,7 @@ CalculateWeirdFunctionArgsAndValues proc
 		;Now X < 1, so f(X) == a * (1-X)
 		fsubrp						;Now ST == (1-X)
 		fmul qword ptr [EBP + 8]	;Now ST == a * (1-X)
+		fsqrt						;Now ST == sqrt(a(1-X))
 		
 	AfterFuncCalculation:
 		fstp qword ptr [EBX]	;Store f(X) to {valsArray}
@@ -256,9 +257,178 @@ CycleExit:
 	pop EAX
 	pop EBP
 
-	ret 28
+	ret 52
 CalculateWeirdFunctionArgsAndValues endp
 
+
+
+;void BuildTableLine(double arg, double val, char* tableLine, const char* lineFormat)
+;
+;		Fills {tableLine} with string representation of {arg} and {val},
+;	using specified {lineFormat}.
+;		Caller is responsible for assuring that {tableLine} has enough space to store
+;	formatted table line.
+;
+;Input:
+;	arg			- [EBP + 8]
+;	val			- [EBP + 16]
+;	tableLine	- [EBP + 24]
+;	lineFormat	- [EBP + 28]
+;
+;Output:
+;	none
+.data
+	argNumberString db 100 dup(0)
+	valNumberString db 100 dup(0)
+	
+	numberStringLength dd 100
+.code
+BuildTableLine proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	push EDX
+
+;Convert function argument to string
+	push offset argNumberString
+	push dword ptr [EBP + 12]
+	push dword ptr [EBP + 8]
+	call FloatToStr
+
+;Convert function value to string
+	push offset valNumberString
+	push dword ptr [EBP + 20]
+	push dword ptr [EBP + 16]
+	call FloatToStr
+	
+
+;Format arg and val strings, copy to output string
+	push offset valNumberString
+	push offset argNumberString
+	push [EBP + 28]
+	push [EBP + 24]
+	call wsprintf
+	;Align stack after 'wsprintf'
+	add ESP, 16
+
+;Clear arg and val strings
+	mov ECX, offset argNumberString
+	add ECX, numberStringLength		;ECX == after-the-last address of argumebt string
+	
+	mov EAX, offset argNumberString	;EAX == current 'argNumberString' char pointer
+	mov EBX, offset valNumberString	;EBX == current 'valNumberString' char pointer
+
+	ClearCycle:
+		;Clear current bytes
+		mov byte ptr [EAX], 0
+		mov byte ptr [EBX], 0
+
+		;Increase current byte pointers
+		add EAX, 1
+		add EBX, 1
+
+		;If current byte belongs to string, repeat
+		cmp EAX, ECX
+		jb ClearCycle
+
+;Epilogue & return
+	pop EDX
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
+
+	ret 24
+BuildTableLine endp
+
+;void PrintFormattedFunctionTable(double* argsArray, double* valsArray, int arraySize)
+;
+;		Prints to console table of function arguments from {argsArray} 
+;	and values from {valsArray}.
+;
+;Input:
+;	argsArray	- [EBP + 8]
+;	valsArray	- [EBP + 12]
+;	arraySize	- [EBP + 16]
+;
+;Output:
+;	none
+.data
+	functionTableCaption db "     x     |    f(x)   ", 0Dh, 0Ah;\r\n
+	functionTableCaptionLength dd 11+1+11+2
+
+	formatString db "%11.11s|%11.11s", 0Dh, 0Ah, 0;11 symbols, '|', 11 symbols again, \r\n
+
+	tableLineString db 11+1+11+2 dup(0),0;Ends with \0 because 'wsprintf' writes \0 after last char.
+	tableLineStringLength dd 25;11+1+11+2
+
+.code
+PrintFormattedFunctionTable proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	push EDX
+	push ESI
+	push EDI
+
+
+;Print table caption
+	push NULL                
+	push offset charsWritten
+	push functionTableCaptionLength
+	push offset functionTableCaption
+	push outputHandle
+	call WriteConsole
+
+;Print table values
+	
+	mov ESI, dword ptr [EBP + 8]	;ESI == address of current element in {argsArray}
+	mov EDI, dword ptr [EBP + 12]	;EDI == address of current element in {valsArray}
+	
+	mov EBX, dword ptr [EBP + 16]	;EBX == number of elements in {argsArray}
+	shl EBX, 3						;EBX == number of bytes in {argsArray}
+	add EBX, ESI					;EBX == address of after-the-last {argsArray} element
+
+	LinePrintCycle:
+		push offset formatString
+		push offset tableLineString
+		push [EDI + 4]
+		push [EDI]
+		push [ESI + 4]
+		push [ESI]
+		call BuildTableLine
+	
+		;Print table line
+		push NULL                
+		push offset charsWritten
+		push tableLineStringLength
+		push offset tableLineString
+		push outputHandle
+		call WriteConsole
+
+		add ESI, 8
+		add EDI, 8
+
+		cmp ESI, EBX
+		jb LinePrintCycle
+
+;Epilogue & return
+	pop EDI
+	pop ESI
+	pop EDX
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP	
+	
+	ret 12
+PrintFormattedFunctionTable endp
 
 
 
@@ -273,23 +443,7 @@ CalculateWeirdFunctionArgsAndValues endp
 	xEndInputPrompt db "  x2: ", 0
 	xDeltaInputPrompt db "  dx: ", 0
 
-	functionTableCaption db "     x     |    f(x)   ", 0
 	
-	;numberString db 10+2 dup(0);For number & \r\n
-	;
-	;resultMessage db "3a - (a+b)/2 = "
-	;resultMessageLength dd 15
-	;
-	;resultNumberString db 10 dup(0), 0Dh, 0Ah;For number & \r\n
-	;resultNumberStringLength dd 12;Should be enough
-
-	aParamNumber dq 3.7
-	bParamNumber dq 2.0
-	
-	xStartNumber dq -6.0
-	xEndNumber dq 6.0
-	xDeltaNumber dq 3.5
-
 .data?
 	inputHandle dd ?
 	outputHandle dd ?
@@ -298,12 +452,12 @@ CalculateWeirdFunctionArgsAndValues endp
 	charsRead dd ?
 
 
-	;aParamNumber dq ?
-	;bParamNumber dq ?
-	;
-	;xStartNumber dq ?
-	;xEndNumber dq ?
-	;xDeltaNumber dq ?
+	aParamNumber dq ?
+	bParamNumber dq ?
+	
+	xStartNumber dq ?
+	xEndNumber dq ?
+	xDeltaNumber dq ?
 
 
 	functionArgumentsArrayPointer dd ?
@@ -333,25 +487,25 @@ Task3 proc
 	call WriteConsole
 	
 ;Read user input
-	;push offset aParamNumber
-	;push offset aParamInputPrompt
-	;call ConsoleReadDouble
-	;
-	;push offset bParamNumber
-	;push offset bParamInputPrompt
-	;call ConsoleReadDouble
-	;
-	;push offset xStartNumber
-	;push offset xStartInputPrompt
-	;call ConsoleReadDouble
-	;
-	;push offset xEndNumber
-	;push offset xEndInputPrompt
-	;call ConsoleReadDouble
-	;
-	;push offset xDeltaNumber
-	;push offset xDeltaInputPrompt
-	;call ConsoleReadDouble
+	push offset aParamNumber
+	push offset aParamInputPrompt
+	call ConsoleReadDouble
+	
+	push offset bParamNumber
+	push offset bParamInputPrompt
+	call ConsoleReadDouble
+	
+	push offset xStartNumber
+	push offset xStartInputPrompt
+	call ConsoleReadDouble
+	
+	push offset xEndNumber
+	push offset xEndInputPrompt
+	call ConsoleReadDouble
+	
+	push offset xDeltaNumber
+	push offset xDeltaInputPrompt
+	call ConsoleReadDouble
 
 ;Calculate weird function arguments and values tables
 	push offset functionValuesCount
@@ -370,8 +524,22 @@ Task3 proc
 	call CalculateWeirdFunctionArgsAndValues
 
 ;Print resulting table
-	
-	
+	push functionValuesCount
+	push functionValuesArrayPointer
+	push functionArgumentsArrayPointer
+	call PrintFormattedFunctionTable
+
+;Clear memory
+	push functionArgumentsArrayPointer
+	push 0
+	push heapHandle
+	call HeapFree
+
+	push functionValuesArrayPointer
+	push 0
+	push heapHandle
+	call HeapFree
+
 	ret
 Task3 endp
 end
