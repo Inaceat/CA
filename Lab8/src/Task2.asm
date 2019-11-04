@@ -343,6 +343,65 @@ Return:
 FindAddressOfMinInArray endp
 
 
+;void SwapObjects(T* first, T* second, int sizeofTObject)
+;
+;		Swaps memory between 
+;	[{first}, {first} + {sizeofTObject}) and
+;	[{second}, {second} + {sizeofTObject}).
+;
+;Input:
+;	first			- [EBP + 8]
+;	second			- [EBP + 12]
+;	sizeofTObject	- [EBP + 16]
+;
+;Output:
+;	none
+.code
+SwapObjects proc
+;Prologue
+	push EBP
+	mov EBP, ESP
+	push EAX
+	push EBX
+	push ECX
+	push EDX
+	push ESI
+
+	;Init cycle
+	mov EAX, [EBP + 8]	;EAX == address of current byte in {first}, the first for now
+	mov EBX, [EBP + 12]	;EBX == address of current byte in {second}, the first for now
+	
+	mov ESI, EAX
+	add ESI, [EBP + 16]	;ESI == address of after-the-last byte of {first}
+
+	Cycle:
+		;If no bytes left, return.
+		cmp EAX, ESI
+		je Return
+
+		;Else swap current bytes
+		mov CL, [EAX]
+		mov DL, [EBX]
+
+		mov [EAX], DL
+		mov [EBX], CL
+
+		;Prepare next iteration
+		inc EAX
+		inc EBX
+		jmp Cycle
+
+Return:
+;Epilogue & return
+	pop ESI
+	pop EDX
+	pop ECX
+	pop EBX
+	pop EAX
+	pop EBP
+	ret 12
+SwapObjects endp
+
 
 
 ;void SortArray(T* array, int arraySize, int arrayElementBytes, int (*comparer)(T* first, T* second))
@@ -370,15 +429,9 @@ SortArray proc
 	push EBX
 	push ECX
 
-	;mov EAX, [EBP + 16]
-	;mul dword ptr [EBP + 12]
-	;add EAX, [EBP + 8]
-	;
-	;push dword ptr [EBP + 20]
-	;push dword ptr [EBP + 16]
-	;push EAX
-	;push dword ptr [EBP + 8]
-	;call FindAddressOfMinInArray
+	
+
+
 
 ;Epilogue & return
 	pop ECX
@@ -450,7 +503,7 @@ Task2 proc
 	push offset sortedByWeightArrayMessage
 	push outputHandle
 	call WriteConsole
-
+	
 	push CompareWeightMeasureRecordByWeight
 	push sizeofTWeightMeasureRecord
 	push weightDataArraySize
