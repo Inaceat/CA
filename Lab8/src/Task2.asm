@@ -233,7 +233,7 @@ CompareWeightMeasureRecordByDateDescending proc
 	cmp ECX, (TWeightMeasureRecord ptr [EBX]).Year
 	ja Later
 	;If {first}.Year < {second}.Year
-	ja Earlier
+	jb Earlier
 
 ;If years are equal, compare months
 	;Load {first}.Month to ECX
@@ -243,7 +243,7 @@ CompareWeightMeasureRecordByDateDescending proc
 	cmp ECX, (TWeightMeasureRecord ptr [EBX]).Month
 	ja Later
 	;If {first}.Month < {second}.Month
-	ja Earlier
+	jb Earlier
 
 ;If years and months are equal, compare days
 	;Load {first}.Day to ECX
@@ -253,7 +253,7 @@ CompareWeightMeasureRecordByDateDescending proc
 	cmp ECX, (TWeightMeasureRecord ptr [EBX]).Day
 	ja Later
 	;If {first}.Day < {second}.Day
-	ja Earlier
+	jb Earlier
 
 ;If years, months & days are equal, dates are equal
 	mov EAX, 0
@@ -428,12 +428,43 @@ SortArray proc
 	push EAX
 	push EBX
 	push ECX
+	push EDX
 
-	
+;Init cycle
+	mov ECX, [EBP + 8]	;ECX == address of current array element, the first for now
+
+	mov EAX, [EBP + 12]
+	mul dword ptr [EBP + 16]
+	add EAX, ECX
+	mov EDX, EAX			;EDX == address of after-the-last element
+
+	Cycle:
+		;If no elements left in array, return.
+		cmp ECX, EDX
+		je Return
+
+		;Find address of min element in [ECX, EDX)
+		push [EBP + 20]
+		push [EBP + 16]
+		push EDX
+		push ECX
+		call FindAddressOfMinInArray
+
+		;Swap min element in [ECX, EDX) with current first, [ECX]
+		push [EBP + 16]
+		push EAX
+		push ECX
+		call SwapObjects
+
+		Continue:
+		;Prepare next iteration
+		add ECX, [EBP + 16]
+		jmp Cycle
 
 
-
+Return:
 ;Epilogue & return
+	pop EDX
 	pop ECX
 	pop EBX
 	pop EAX
@@ -447,11 +478,11 @@ SortArray endp
 	
 	sizeofTWeightMeasureRecord dd 20
 
-	weightDataArray TWeightMeasureRecord <1, 12, 2019, 105.2>,;M:4 D:4
-										 <1, 12, 2016, 124.6>,;M:5 D:1
-										 <25, 12, 2019, 50.8>,;M:1 D:5
-										 <1, 7, 2019, 73.3>,  ;M:2 D:3
-										 <4, 7, 2018, 83.3>	  ;M:3 D:2
+	weightDataArray TWeightMeasureRecord <1, 12, 2019, 124.6>,;W:5 D:2
+										 <1, 12, 2016, 105.2>,;W:4 D:5
+										 <25, 12, 2019, 50.8>,;W:1 D:1
+										 <1, 7, 2019, 73.3>,  ;W:2 D:3
+										 <4, 7, 2018, 83.3>	  ;W:3 D:4
 	weightDataArraySize dd 5
 
 
