@@ -7,7 +7,9 @@ public class Main
     public static void main(String[] cmdArgs)
     {
         int[][] walls = { {2, 4}, {6, 8} };
-        World world = new World(walls);
+        int[][] markers = { {3, 7}, {5, 9} };
+
+        World world = new World(walls, markers);
 
 
         var robotMainWindow = new RobotMainWindow("PainBot", world);

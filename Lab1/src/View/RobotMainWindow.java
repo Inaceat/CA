@@ -92,6 +92,10 @@ public class RobotMainWindow
         {
             _wordViewer.SetTileColor(coordinates[0], coordinates[1], _wallTileColor);
         }
+        for (int[] coordinates : world.GetMarkersCoordinates())
+        {
+            _wordViewer.SetTileColor(coordinates[0], coordinates[1], _markedTileColor);
+        }
         _root.add(_wordViewer);
 
 
