@@ -6,10 +6,12 @@ public class Main
 {
     public static void main(String[] cmdArgs)
     {
+        int sizeX = 10;
+        int sizeY = 10;
         int[][] walls = { {2, 4}, {6, 8} };
         int[][] markers = { {3, 7}, {5, 9} };
 
-        World world = new World(walls, markers);
+        World world = new World(sizeX, sizeY, walls, markers);
 
 
         var robotMainWindow = new RobotMainWindow("PainBot", world);

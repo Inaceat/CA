@@ -4,6 +4,10 @@ import Events.Event;
 import Events.EventHandler;
 import Robot.Actions.ActionType;
 import Robot.Actions.RobotAction;
+import Robot.Hardware.Chassis;
+import Robot.Hardware.ControlUnit;
+import Robot.Hardware.Memory;
+import Robot.Hardware.ProcessingUnit;
 import World.World;
 
 public class Robot
@@ -39,7 +43,13 @@ public class Robot
                 Execute();
             });
 
-
+    
+    
+    private ProcessingUnit _cpu;
+    private Memory         _memory;
+    private ControlUnit    _controller;
+    private Chassis        _chassis;
+    
 
     public Robot(World world)
     {
