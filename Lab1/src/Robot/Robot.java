@@ -2,38 +2,61 @@ package Robot;
 
 import Events.Event;
 import Events.EventHandler;
+import Robot.Actions.ActionType;
+import Robot.Actions.RobotAction;
+import World.World;
 
 public class Robot
 {
-    private Event<String> _actionDoneEvent = new Event<String>();
-    public void AddActionHandler(EventHandler<String> handler)
+    private Event<RobotAction> _actionDoneEvent = new Event<>();
+    public void AddActionHandler(EventHandler<RobotAction> handler)
     {
         _actionDoneEvent.AddListener(handler);
     }
 
-    private Event<String> _errorHappenedEvent = new Event<String>();
+    private Event<String> _errorHappenedEvent = new Event<>();
     public void AddErrorHandler(EventHandler<String> handler)
     {
         _errorHappenedEvent.AddListener(handler);
     }
 
 
-    public EventHandler<String> OnExecutionRequest = new EventHandler<String>(
+    public EventHandler<String> OnExecutionRequest = new EventHandler<>(
             programText ->
             {
-                SetProgram(programText);
+                if (programText.isEmpty())
+                {
+                    _errorHappenedEvent.Fire("Error: no program!");
+                    return;
+                }
+
+                if (!SetProgram(programText))
+                {
+                    _errorHappenedEvent.Fire("Error: invalid program!");
+                    return;
+                }
+
                 Execute();
             });
 
 
 
-    private void SetProgram(String program)
+    public Robot(World world)
     {
-        _actionDoneEvent.Fire("Program set");
+    }
+
+
+    private Boolean SetProgram(String program)
+    {
+        return !program.contains("X");
     }
 
     private void Execute()
     {
-        _errorHappenedEvent.Fire("Error: no program");
+        _actionDoneEvent.Fire(new RobotAction(ActionType.Move, "1,1"));
+
+        _actionDoneEvent.Fire(new RobotAction(ActionType.TurnLeft, ""));
+
+        _actionDoneEvent.Fire(new RobotAction(ActionType.PlaceMarker, "1,1"));
     }
 }

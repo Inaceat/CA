@@ -3,6 +3,10 @@ package View;
 import Events.Event;
 import Events.EventHandler;
 
+import Robot.Actions.RobotAction;
+
+import World.World;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -13,32 +17,64 @@ public class RobotMainWindow
 
     private WorldViewer _wordViewer;
     private JTextArea _text;
+    private JLabel _errorText;
+
+    private Color _emptyTileColor  = Color.WHITE;
+    private Color _markedTileColor = Color.RED;
+    private Color _wallTileColor   = Color.BLACK;
 
 
-
-    public EventHandler<String> OnRobotAction = new EventHandler<String>(
-            args ->
+    public EventHandler<RobotAction> OnRobotAction = new EventHandler<>(
+            action ->
             {
-                _wordViewer.SetTileColor((int)(Math.random()*10), (int)(Math.random()*10), new Color((int)(Math.random() * 0x1000000)));
-                System.out.println("Action \"" + args + "\"");
+                String[] coordinateStrings;
+
+                switch (action.Type())
+                {
+                    case Move:
+                        coordinateStrings = action.Data().split(",");
+                        _wordViewer.MoveRobotToTile(Integer.parseInt(coordinateStrings[0]),
+                                                    Integer.parseInt(coordinateStrings[1]));
+                        break;
+
+                    case TurnLeft:
+                        _wordViewer.TurnRobotLeft();
+                        break;
+
+                    case TurnRight:
+                        _wordViewer.TurnRobotRight();
+                        break;
+
+                    case PickUpMarker:
+                        coordinateStrings = action.Data().split(",");
+                        _wordViewer.SetTileColor(Integer.parseInt(coordinateStrings[0]),
+                                                 Integer.parseInt(coordinateStrings[1]),
+                                                 _emptyTileColor);
+                        break;
+
+                    case PlaceMarker:
+                        coordinateStrings = action.Data().split(",");
+                        _wordViewer.SetTileColor(Integer.parseInt(coordinateStrings[0]),
+                                                 Integer.parseInt(coordinateStrings[1]),
+                                                 _markedTileColor);
+                        break;
+                }
             });
 
-    public EventHandler<String> OnRobotError = new EventHandler<String>(
-            args ->
-            {
-                System.out.println("Error \"" + args + "\"");
-            });
+    public EventHandler<String> OnRobotError = new EventHandler<>(
+            errorMessage ->
+                    _errorText.setText(errorMessage));
 
 
 
-    private Event<String> _robotStartPressed = new Event<String>();
+    private Event<String> _robotStartPressed = new Event<>();
     public void AddRobotStartPressedHandler(EventHandler<String> handler)
     {
         _robotStartPressed.AddListener(handler);
     }
 
 
-    public RobotMainWindow(String caption)
+    public RobotMainWindow(String caption, World world)
     {
         super(caption);
         
@@ -47,17 +83,26 @@ public class RobotMainWindow
 
 
         _text = new JTextArea();
-        _text.setSize(150, 150);
-
+        _text.setLineWrap(true);
         _root.add(_text);
 
 
         _wordViewer = new WorldViewer(10);
+        for (int[] coordinates : world.GetWallsCoordinates())
+        {
+            _wordViewer.SetTileColor(coordinates[0], coordinates[1], _wallTileColor);
+        }
         _root.add(_wordViewer);
 
 
+        _errorText = new JLabel("");
+        _root.add(_errorText);
+
         var button = new JButton("Execute");
-        button.addActionListener(e -> _robotStartPressed.Fire("FEUER!"));
+        button.addActionListener(e -> {
+            _errorText.setText("");
+            _robotStartPressed.Fire(_text.getText());
+        });
         _root.add(button);
 
 
