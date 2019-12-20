@@ -29,7 +29,8 @@ public class World
     {
         return _markers;
     }
-    
+
+
     public boolean IsTileMovable(int x, int y)
     {
         //If input is invalid
@@ -50,7 +51,7 @@ public class World
     
     public boolean RemoveMarker(int x, int y)
     {
-        return _walls.removeIf(e -> e[0] == x && e[1] == y);
+        return _markers.removeIf(e -> e[0] == x && e[1] == y);
     }
     
     public boolean AddMarker(int x, int y)
@@ -58,7 +59,7 @@ public class World
         if (TileHasMarker(x, y))
             return false;
         
-        _walls.add( new int[]{x, y} );
+        _markers.add( new int[]{x, y} );
         
         return true;
     }

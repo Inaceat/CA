@@ -7,6 +7,6 @@ public enum ActionType
     Move,//"x,y" of destination
     TurnLeft,
     TurnRight,
-    PickUpMarker,//"x,y" of current tile
-    PlaceMarker//"x,y" of current tile
+    PickUpMarker,//"x,y,c": coords of current tile, markers left in robot
+    PlaceMarker//"x,y,c": coords of current tile, markers left in robot
 }

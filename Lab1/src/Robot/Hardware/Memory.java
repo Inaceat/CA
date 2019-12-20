@@ -4,13 +4,13 @@ public class Memory
 {
     private int _size;
 
-    private char[] _data;
+    private Character[] _data;
 
 
     public Memory(int size)
     {
         _size = size;
-        _data = new char[_size];
+        _data = new Character[_size];
 
         Reset();
     }
@@ -22,12 +22,12 @@ public class Memory
     }
 
 
-    public char GetByte(int address)
+    public Character GetByte(int address)
     {
         return _data[address];
     }
 
-    public void SetByte(int address, char value)
+    public void SetByte(int address, Character value)
     {
         _data[address] = value;
     }
@@ -36,7 +36,7 @@ public class Memory
     {
         for (int i = 0; i < _size; i++)
         {
-            _data[i] = 0;
+            _data[i] = '0';
         }
     }
 }

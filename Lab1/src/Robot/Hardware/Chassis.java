@@ -68,39 +68,54 @@ public class Chassis
         _markersCount = 0;
     }
     
-    
+
+    public int GetXCoordinate()
+    {
+        return _currentX;
+    }
+    public int GetYCoordinate()
+    {
+        return _currentY;
+    }
+
+    public int GetMarkersCount()
+    {
+        return _markersCount;
+    }
+
+
     public boolean MoveForward()
     {
         switch (_direction)
         {
             case North:
             {
-                if (_world.IsTileMovable(_currentX - 1, _currentY))
-                    _currentX -= 1;
+                if (_world.IsTileMovable(_currentX, _currentY - 1))
+                    _currentY -= 1;
                 else
                     return false;
             }break;
                 
             case East:
             {
-                if (_world.IsTileMovable(_currentX, _currentY + 1))
-                    _currentY += 1;
+                if (_world.IsTileMovable(_currentX + 1, _currentY))
+                    _currentX += 1;
                 else
                     return false;
             }break;
             
             case South:
             {
-                if (_world.IsTileMovable(_currentX + 1, _currentY))
-                    _currentX += 1;
+                if (_world.IsTileMovable(_currentX, _currentY + 1))
+                    _currentY += 1;
                 else
                     return false;
             }break;
                 
             case West:
             {
-                if (_world.IsTileMovable(_currentX, _currentY - 1))
-                    _currentY -= 1;
+                if (_world.IsTileMovable(_currentX - 1, _currentY))
+                    _currentX -= 1;
                 else
                     return false;
             }break;

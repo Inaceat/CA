@@ -16,8 +16,9 @@ public class RobotMainWindow
     private JPanel _root;
 
     private WorldViewer _wordViewer;
-    private JTextArea _text;
-    private JLabel _errorText;
+    private JTextArea   _text;
+    private JLabel      _markersCountText;
+    private JLabel      _errorText;
 
     private Color _emptyTileColor  = Color.WHITE;
     private Color _markedTileColor = Color.RED;
@@ -50,6 +51,8 @@ public class RobotMainWindow
                         _wordViewer.SetTileColor(Integer.parseInt(coordinateStrings[0]),
                                                  Integer.parseInt(coordinateStrings[1]),
                                                  _emptyTileColor);
+
+                        _markersCountText.setText("Markers: " + coordinateStrings[2]);
                         break;
 
                     case PlaceMarker:
@@ -57,6 +60,8 @@ public class RobotMainWindow
                         _wordViewer.SetTileColor(Integer.parseInt(coordinateStrings[0]),
                                                  Integer.parseInt(coordinateStrings[1]),
                                                  _markedTileColor);
+
+                        _markersCountText.setText("Markers: " + coordinateStrings[2]);
                         break;
                 }
             });
@@ -108,6 +113,10 @@ public class RobotMainWindow
             _robotStartPressed.Fire(_text.getText());
         });
         _root.add(button);
+
+
+        _markersCountText = new JLabel("Markers: ?");
+        _root.add(_markersCountText);
 
 
         setContentPane(_root);
