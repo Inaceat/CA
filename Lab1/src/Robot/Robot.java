@@ -1,14 +1,11 @@
 package Robot;
 
-import Events.Event;
-import Events.EventHandler;
-import Robot.Actions.ActionType;
-import Robot.Actions.RobotAction;
-import Robot.Hardware.Chassis;
-import Robot.Hardware.ControlUnit;
-import Robot.Hardware.Memory;
-import Robot.Hardware.ProcessingUnit;
+import Events.*;
+import Robot.Actions.*;
+import Robot.Hardware.*;
+
 import World.World;
+
 
 public class Robot
 {
@@ -53,20 +50,28 @@ public class Robot
 
     public Robot(World world)
     {
+        _chassis = new Chassis(world, 0, 0, Chassis.LookDirection.North);
+
+        _memory = new Memory(4096);
+        _cpu = new ProcessingUnit();
+
+        _controller = new ControlUnit(_cpu, _memory, _chassis);
+
+        _cpu.ConnectController(_controller);//...
     }
 
 
-    private Boolean SetProgram(String program)
+    private boolean SetProgram(String program)
     {
-        return !program.contains("X");
+        return _controller.LoadProgram(program);
     }
 
     private void Execute()
     {
-        _actionDoneEvent.Fire(new RobotAction(ActionType.Move, "1,1"));
+        _controller.StartRobot();
 
-        _actionDoneEvent.Fire(new RobotAction(ActionType.TurnLeft, ""));
-
-        _actionDoneEvent.Fire(new RobotAction(ActionType.PlaceMarker, "1,1"));
+        //_actionDoneEvent.Fire(new RobotAction(ActionType.Move, "1,1"));
+        //_actionDoneEvent.Fire(new RobotAction(ActionType.TurnLeft, ""));
+        //_actionDoneEvent.Fire(new RobotAction(ActionType.PlaceMarker, "1,1"));
     }
 }
