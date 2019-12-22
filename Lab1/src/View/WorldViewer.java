@@ -67,6 +67,7 @@ class WorldViewer
     }
     
     
+    
     @Override
     public Dimension getPreferredSize()
     {

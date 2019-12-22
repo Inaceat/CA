@@ -9,6 +9,8 @@ import World.World;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RobotMainWindow
         extends JFrame
@@ -21,8 +23,8 @@ public class RobotMainWindow
     private JLabel      _errorText;
 
     private Color _emptyTileColor  = Color.WHITE;
-    private Color _markedTileColor = Color.RED;
-    private Color _wallTileColor   = Color.BLACK;
+    private Color _markedTileColor = Color.GREEN;
+    private Color _wallTileColor   = Color.RED;
 
 
     public EventHandler<RobotAction> OnRobotAction = new EventHandler<>(
@@ -110,7 +112,19 @@ public class RobotMainWindow
         var button = new JButton("Execute");
         button.addActionListener(e -> {
             _errorText.setText("");
-            _robotStartPressed.Fire(_text.getText());
+    
+            TimerTask s = new TimerTask()
+            {
+                @Override
+                public void run()
+                {
+                    _robotStartPressed.Fire(_text.getText());
+                }
+            };
+            
+            Timer x = new Timer();
+            x.schedule(s, 0);
+            
         });
         _root.add(button);
 

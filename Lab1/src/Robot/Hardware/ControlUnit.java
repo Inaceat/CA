@@ -5,6 +5,10 @@ import Events.EventHandler;
 import Robot.Actions.ActionType;
 import Robot.Actions.RobotAction;
 
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 public class ControlUnit
 {
     private Event<RobotAction> _actionDoneEvent = new Event<>();
@@ -66,8 +70,17 @@ public class ControlUnit
 
         while (_cpu.CanExecute())
         {
+            try
+            {
+                Thread.sleep(200);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+    
             _cpu.ExecuteNextCommand();
-            //sleep
+            
         }
     }
 
@@ -77,13 +90,13 @@ public class ControlUnit
         _memory.Reset();
     }
 
-    public Character GetMemoryByte(int address)
+    Character GetMemoryByte(int address)
     {
         return _memory.GetByte(address);
     }
 
 
-    public void MoveChassisForward()
+    void MoveChassisForward()
     {
         var moved = _chassis.MoveForward();
 
@@ -103,19 +116,19 @@ public class ControlUnit
         }
     }
 
-    public void TurnChassisLeft()
+    void TurnChassisLeft()
     {
         _chassis.TurnLeft();
         _actionDoneEvent.Fire(new RobotAction(ActionType.TurnLeft, ""));
     }
 
-    public void TurnChassisRight()
+    void TurnChassisRight()
     {
         _chassis.TurnRight();
         _actionDoneEvent.Fire(new RobotAction(ActionType.TurnRight, ""));
     }
 
-    public void PlaceMarker()
+    void PlaceMarker()
     {
         var placed = _chassis.PlaceMarker();
 
@@ -137,7 +150,7 @@ public class ControlUnit
         }
     }
 
-    public void PickMarker()
+    void PickMarker()
     {
         var picked = _chassis.RemoveMarker();
 
